@@ -70,6 +70,7 @@ public class Database {
             ps.setInt(2, rekeningnummer);
             return ps.execute();
         }
+        return false;
     }
 
 }
