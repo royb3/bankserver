@@ -52,4 +52,10 @@ public class BankEndpoint {
         else
             throw new NotAuthorizedException(Response.status(Response.Status.UNAUTHORIZED).build());
     }
+    
+    @GET
+    @Path("/maximum_withdraw/{rekeningnummer}")
+    public long maximumWithdraw(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException{
+        return Database.getDatabase().maximumWithdraw(Integer.parseInt(rekeningnummer));
+    }
 }

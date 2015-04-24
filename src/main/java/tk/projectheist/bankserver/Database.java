@@ -86,7 +86,25 @@ public class Database {
         set.next();
         int count = set.getInt("a");
         return (count == 1);
+    }
+    
+    public long maximumWithdraw(int rekeningnummer) throws SQLException{
+        try{
+        if(connection.isClosed())
+            connect();
+        PreparedStatement ps = connection.prepareStatement("SELECT products.max_debit FROM accounts, products WHERE accounts.id = ? and accounts.products_id = products.id");
+        ps.setInt(1, rekeningnummer);
+        ResultSet set = ps.executeQuery();
+        set.next();
+        double maxWithrawAmount = set.getDouble(1)*100;
         
+        long balance = this.getBalance(rekeningnummer);
+        maxWithrawAmount += balance;
+        return (long)(maxWithrawAmount );
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return 0;
     }
 
 }
