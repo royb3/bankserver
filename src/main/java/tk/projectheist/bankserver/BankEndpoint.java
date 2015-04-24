@@ -5,10 +5,12 @@
  */
 package tk.projectheist.bankserver;
 
+import com.sun.xml.internal.ws.api.message.Packet;
 import java.sql.SQLException;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -44,7 +46,10 @@ public class BankEndpoint {
     }
      @GET
     @Path("/auth/{rekeningnummer}/{kaartnummer}/{pincode}")
-    public boolean authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("kaartnummer") String kaartnummer, @PathParam("pincode") String pincode) throws SQLException {
-        return Database.getDatabase().authenticate(Integer.parseInt(rekeningnummer), Integer.parseInt(pincode), kaartnummer);
+    public boolean authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("kaartnummer") String kaartnummer, @PathParam("pincode") String pincode) throws Exception {
+        if(Database.getDatabase().authenticate(Integer.parseInt(rekeningnummer), Integer.parseInt(pincode), kaartnummer))
+            return true;
+        else
+            throw new NotAuthorizedException(Response.status(Response.Status.UNAUTHORIZED).build());
     }
 }
