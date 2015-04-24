@@ -22,7 +22,7 @@ public class Database {
     private Connection connection = null;
     private final String host = "jdbc:mysql://localhost:3306/projectheist";
     private final String userName = "root";
-    private final String userPass = "Pasword";
+    private final String userPass = "";
     private Statement stmt = null;
     private static Database database = null;
     
@@ -52,13 +52,15 @@ public class Database {
     }
     
     public long getBalance(int rekeningnummer) throws SQLException{
+        if(connection.isClosed())
+            connect();
         long saldo = 0;
-        PreparedStatement ps = connection.prepareStatement("SELECT balance FROM account WHERE id=?");
+        PreparedStatement ps = connection.prepareStatement("SELECT balance FROM accounts WHERE id=?");
         ps.setInt(1, rekeningnummer);
         ResultSet set = ps.executeQuery();
         set.next();
         saldo = set.getInt("balance");
-        return saldo;
+        return saldo;        
     }
     
     public boolean withdraw(int rekeningnummer, long amount) throws SQLException{
@@ -71,6 +73,20 @@ public class Database {
             return ps.execute();
         }
         return false;
+    }
+    
+    public boolean authenticate(int rekeningnummer, int pincode, String kaartnummer) throws SQLException{
+        if(connection.isClosed())
+            connect();
+        PreparedStatement ps = connection.prepareStatement("SELECT COUNT(passes.id) as a FROM passes WHERE passes.accounts_id = ? and passes.pin = ? and passes.passnumber = ?");
+        ps.setInt(1, rekeningnummer);
+        ps.setInt(2, pincode);
+        ps.setString(3, kaartnummer);
+        ResultSet set = ps.executeQuery();
+        set.next();
+        int count = set.getInt("a");
+        return (count == 1);
+        
     }
 
 }

@@ -23,8 +23,8 @@ import javax.ws.rs.core.Response;
 public class BankEndpoint {
     @GET
     @Path("/balance/{rekeningnummer}")
-    public long getSaldo(@PathParam("rekeningnummer") String rekeningnummer){
-        return (long)889749437;
+    public long getSaldo(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException {
+        return (long)Database.getDatabase().getBalance(Integer.parseInt(rekeningnummer));
     }
     @POST
     @Path("/withdraw")
@@ -42,5 +42,9 @@ public class BankEndpoint {
         }
         return response;
     }
-    
+     @GET
+    @Path("/auth/{rekeningnummer}/{kaartnummer}/{pincode}")
+    public boolean authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("kaartnummer") String kaartnummer, @PathParam("pincode") String pincode) throws SQLException {
+        return Database.getDatabase().authenticate(Integer.parseInt(rekeningnummer), Integer.parseInt(pincode), kaartnummer);
+    }
 }
