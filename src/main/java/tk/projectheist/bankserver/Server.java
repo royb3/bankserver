@@ -1,9 +1,10 @@
 package tk.projectheist.bankserver;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import java.io.IOException;
 import java.net.URI;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 /*
@@ -25,6 +26,7 @@ public class Server {
     public Server(){
         HttpServer server = initWebServer();
         try{
+            ServerConfiguration config =  server.getServerConfiguration();
             server.start();
             
             while(true)

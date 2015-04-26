@@ -5,7 +5,6 @@
  */
 package tk.projectheist.bankserver;
 
-import com.sun.xml.internal.ws.api.message.Packet;
 import java.sql.SQLException;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -14,6 +13,7 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -33,7 +33,7 @@ public class BankEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     public WithdrawResponse withdraw(WithdrawRequest request) throws SQLException{
         WithdrawResponse response = new WithdrawResponse();
-        if(request.getAmount() < Database.getDatabase().getBalance(Integer.parseInt(request.getIBAN())))
+        if(request.getAmount() < Database.getDatabase().getBalance(Integer.parseInt(request.getTIBAN().substring(4))))
         {
             response.setResponse("Vooruit dan maar...");
         }
@@ -42,9 +42,10 @@ public class BankEndpoint {
             response.setResponse("Mag niet!");
             throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity(response).build());
         }
+
         return response;
     }
-     @GET
+    @GET
     @Path("/auth/{rekeningnummer}/{kaartnummer}/{pincode}")
     public boolean authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("kaartnummer") String kaartnummer, @PathParam("pincode") String pincode) throws Exception {
         if(Database.getDatabase().authenticate(Integer.parseInt(rekeningnummer), Integer.parseInt(pincode), kaartnummer))
@@ -58,4 +59,6 @@ public class BankEndpoint {
     public long maximumWithdraw(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException{
         return Database.getDatabase().maximumWithdraw(Integer.parseInt(rekeningnummer));
     }
+    
+    
 }

@@ -5,24 +5,23 @@
  */
 package tk.projectheist.bankserver;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import org.codehaus.jackson.annotate.JsonProperty;
 /**
  *
  * @author roy
  */
 public class WithdrawRequest {
     @JsonProperty
-    private String IBAN;
+    private String TIBAN;
     @JsonProperty
     private long amount;
     
-    public String getIBAN() {
-        return IBAN;
+    public String getTIBAN() {
+        return TIBAN;
     }
 
-    public void setIBAN(String IBAN) {
-        this.IBAN = IBAN;
+    public void setIBAN(String TIBAN) {
+        this.TIBAN = TIBAN;
     }
 
     public long getAmount() {
