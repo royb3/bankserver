@@ -33,9 +33,10 @@ public class BankEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     public WithdrawResponse withdraw(WithdrawRequest request) throws SQLException{
         WithdrawResponse response = new WithdrawResponse();
-        if(request.getAmount() < Database.getDatabase().getBalance(Integer.parseInt(request.getTIBAN().substring(4))))
+        long max = Database.getDatabase().maximumWithdraw(Integer.parseInt(request.getTIBAN().substring(4)));
+        if(request.getAmount() < max)
         {
-            response.setResponse("Vooruit dan maar...");
+            response.setTransactionNumber(Database.getDatabase().performWithdraw(Integer.parseInt(request.getTIBAN().substring(4)), request.getAmount()));
         }
         else
         {

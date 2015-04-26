@@ -63,17 +63,7 @@ public class Database {
         return saldo;        
     }
     
-    public boolean withdraw(int rekeningnummer, long amount) throws SQLException{
-        long saldo = getBalance(rekeningnummer);
-        if(saldo >= amount){
-            System.out.println("U mag pinnen!");
-            PreparedStatement ps = connection.prepareStatement("UPDATE accounts SET balance = ? WHERE rekeningnummer = ?");
-            ps.setLong(1, (saldo - amount));
-            ps.setInt(2, rekeningnummer);
-            return ps.execute();
-        }
-        return false;
-    }
+   
     
     public boolean authenticate(int rekeningnummer, int pincode, String kaartnummer) throws SQLException{
         if(connection.isClosed())
@@ -90,7 +80,7 @@ public class Database {
     
     public long maximumWithdraw(int rekeningnummer) throws SQLException{
         try{
-        if(connection.isClosed())
+        if(connection == null || connection.isClosed())
             connect();
         PreparedStatement ps = connection.prepareStatement("SELECT products.max_debit FROM accounts, products WHERE accounts.id = ? and accounts.products_id = products.id");
         ps.setInt(1, rekeningnummer);
@@ -102,6 +92,29 @@ public class Database {
         maxWithrawAmount += balance;
         return (long)(maxWithrawAmount );
         }catch(Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    public long performWithdraw(int rekeningnummer, long amount){
+        try{
+            long balance = getBalance(rekeningnummer);
+            if(connection.isClosed())
+                connect();
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO `transactions` (`completion_date`, `amount`, `machines_id`, `receiver_bank_id`, `sender_bank_id`, `receiver_id`, `sender_id`) VALUES (NOW(), ?, 1, 1, 1, -1, ?)", Statement.RETURN_GENERATED_KEYS);
+            ps.setLong(1, amount);
+            ps.setInt(2, rekeningnummer);
+            ps.execute();
+            ResultSet rs = ps.getGeneratedKeys();
+            ps = connection.prepareStatement("UPDATE accounts SET balance = ? WHERE id = ?");
+            ps.setLong(1, balance - amount);
+            ps.setInt(2, rekeningnummer);
+            ps.execute();
+            
+            rs.next();
+            return rs.getInt(1);
+        }catch( Exception e){
             e.printStackTrace();
         }
         return 0;
