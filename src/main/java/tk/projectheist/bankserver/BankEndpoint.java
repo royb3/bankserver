@@ -6,6 +6,7 @@
 package tk.projectheist.bankserver;
 
 import java.sql.SQLException;
+import javax.security.auth.login.AccountLockedException;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -48,11 +49,15 @@ public class BankEndpoint {
     }
     @GET
     @Path("/auth/{rekeningnummer}/{kaartnummer}/{pincode}")
-    public boolean authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("kaartnummer") String kaartnummer, @PathParam("pincode") String pincode) throws Exception {
-        if(Database.getDatabase().authenticate(Integer.parseInt(rekeningnummer), Integer.parseInt(pincode), kaartnummer))
-            return true;
-        else
+    public int authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("kaartnummer") String kaartnummer, @PathParam("pincode") String pincode) throws Exception {
+        int attempts_left = Database.getDatabase().authenticate(Integer.parseInt(rekeningnummer), Integer.parseInt(pincode), kaartnummer);
+        if(attempts_left == -1){
+            return -1;
+        } else if (attempts_left > 0) {
             throw new NotAuthorizedException(Response.status(Response.Status.UNAUTHORIZED).build());
+        } else {
+            throw new NotAuthorizedException(Response.status(403).entity(attempts_left).build());
+        }
     }
     
     @GET

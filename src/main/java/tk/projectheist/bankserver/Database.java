@@ -21,8 +21,8 @@ import java.util.logging.Logger;
 public class Database {
     private Connection connection = null;
     private final String host = "jdbc:mysql://localhost:3306/projectheist";
-    private final String userName = "root";
-    private final String userPass = "";
+    private final String userName = "projectheist";
+    private final String userPass = "jB_.+T;=W;D4%8L";
     private Statement stmt = null;
     private static Database database = null;
     
@@ -65,17 +65,30 @@ public class Database {
     
    
     
-    public boolean authenticate(int rekeningnummer, int pincode, String kaartnummer) throws SQLException{
+    public int authenticate(int rekeningnummer, int pincode, String kaartnummer) throws Exception{
         if(connection.isClosed())
             connect();
-        PreparedStatement ps = connection.prepareStatement("SELECT COUNT(passes.id) as a FROM passes WHERE passes.accounts_id = ? and passes.pin = ? and passes.passnumber = ?");
+        
+        PreparedStatement ps = connection.prepareStatement("SELECT attempts_left, pin FROM passes WHERE passes.accounts_id = ? and passes.passnumber = ?");
+        
         ps.setInt(1, rekeningnummer);
-        ps.setInt(2, pincode);
-        ps.setString(3, kaartnummer);
+        ps.setString(2, kaartnummer);
         ResultSet set = ps.executeQuery();
         set.next();
-        int count = set.getInt("a");
-        return (count == 1);
+        int attempts_left = set.getInt("attempts_left");
+        int db_pincode = set.getInt("pincode");
+        if(attempts_left > 0) {
+            if(pincode == db_pincode) {
+                return -1;
+            }
+            ps = connection.prepareStatement("UPDATE passes SET attempts_left = attempts_left - 1 WHERE WHERE passes.accounts_id = ? and passes.passnumber = ?");
+        
+            ps.setInt(1, rekeningnummer);
+            ps.setString(2, kaartnummer);
+            ps.execute();
+            return --attempts_left;
+        }
+        return 0;
     }
     
     public long maximumWithdraw(int rekeningnummer) throws SQLException{
