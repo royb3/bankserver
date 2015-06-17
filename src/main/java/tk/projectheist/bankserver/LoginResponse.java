@@ -6,14 +6,41 @@
 package tk.projectheist.bankserver;
 
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonCreator;
 
 /**
  *
  * @author roy
  */
-public class LoginResponse{
-    @JsonProperty
-    private String response;
-   
-    
+public class LoginResponse {
+
+    private Error error;
+    private Success success;
+
+    public Error getError() {
+        return error;
+    }
+
+    public void setError(Error error) {
+        this.error = error;
+    }
+
+    public Success getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(Success success) {
+        this.success = success;
+    }
+
+    public LoginResponse() {
+        super();
+    }
+
+    @JsonCreator
+    public LoginResponse(@JsonProperty Success success, @JsonProperty Error error) {
+        super();
+        this.success = success;
+        this.error = error;
+    }
 }

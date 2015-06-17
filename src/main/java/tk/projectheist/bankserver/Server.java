@@ -47,6 +47,6 @@ public class Server {
     public HttpServer initWebServer(){
         ResourceConfig config = new ResourceConfig(BankEndpoint.class);
         config.register(JacksonJaxbJsonProvider.class);
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:8080"), config);
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:80"), config);
     }
 }

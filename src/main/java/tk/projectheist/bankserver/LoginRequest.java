@@ -14,7 +14,7 @@ public class LoginRequest {
     @JsonProperty
     private String pin;
     @JsonProperty
-    private long cardId;
+    private String cardId;
 
     public String getPin() {
         return pin;
@@ -24,13 +24,12 @@ public class LoginRequest {
         this.pin = pin;
     }
 
-    public long getCardId() {
+    public String getCardId() {
         return cardId;
     }
 
-    public void setCardId(long cardId) {
+    public void setCardId(String cardId) {
         this.cardId = cardId;
     }
-    
     
 }
