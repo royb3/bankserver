@@ -20,6 +20,10 @@ public class ExternalApiConnector {
     
     public ExternalApiConnector(){
         hostnames.put("ILMG", "http://145.24.222.103:8080/");
+        hostnames.put("ATMB", "http://145.24.222.217:8080/");
+        hostnames.put("SKER", "http://145.24.222.112:8080/");
+        hostnames.put("MLBI", "http://145.24.222.177:8080/");
+        hostnames.put("COPO", "http://145.24.222.150:8080/");
     }
     
     private void connect(){
