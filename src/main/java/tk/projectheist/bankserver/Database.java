@@ -20,11 +20,11 @@ import java.util.logging.Logger;
  */
 public class Database {
     private Connection connection = null;
-    private final String host = "jdbc:mysql://localhost:3306/projectheist";
+    private final String host = "jdbc:mysql://127.0.0.1:3306/projectheist";
    // private final String userName = "projectheist";
    // private final String userPass = "jB_.+T;=W;D4%8L";
     private final String userName = "root";
-    private final String userPass = "";
+    private final String userPass = "lampenkap";
     private Statement stmt = null;
     private static Database database = null;
     
@@ -67,30 +67,36 @@ public class Database {
     
    
     
-    public int authenticate(int rekeningnummer, int pincode, String kaartnummer) throws Exception{
+    public int authenticate(String rekeningnummer, String pincode) throws Exception{
         if(connection.isClosed())
             connect();
         
-        PreparedStatement ps = connection.prepareStatement("SELECT attempts_left, pin FROM passes WHERE passes.accounts_id = ? and passes.passnumber = ?");
+        PreparedStatement ps = connection.prepareStatement("SELECT attempts_left, pin FROM passes WHERE passes.accounts_id = ?");
         
-        ps.setInt(1, rekeningnummer);
-        ps.setString(2, kaartnummer);
+        ps.setString(1, rekeningnummer.substring(4));
         ResultSet set = ps.executeQuery();
         set.next();
         int attempts_left = set.getInt("attempts_left");
-        int db_pincode = set.getInt("pincode");
+        String db_pincode = set.getString("pin");
+        boolean correct = false;
         if(attempts_left > 0) {
-            if(pincode == db_pincode) {
-                return -1;
+            if(pincode.equals(db_pincode)) {
+                attempts_left = 3;
+                correct = true;
+            } else {
+                attempts_left--;
             }
-            ps = connection.prepareStatement("UPDATE passes SET attempts_left = attempts_left - 1 WHERE WHERE passes.accounts_id = ? and passes.passnumber = ?");
-        
-            ps.setInt(1, rekeningnummer);
-            ps.setString(2, kaartnummer);
+            ps = connection.prepareStatement("UPDATE passes SET attempts_left = ? WHERE passes.accounts_id = ?");
+            ps.setInt(1, attempts_left);
+            ps.setString(2, rekeningnummer.substring(4));
             ps.execute();
-            return --attempts_left;
         }
-        return 0;
+        if(!correct) {
+        return attempts_left;
+        } else {
+            return -1;
+        }
+        }
     }
     
     public long maximumWithdraw(int rekeningnummer) throws SQLException{

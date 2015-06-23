@@ -15,7 +15,7 @@ public class LoginRequest {
     private String pin;
     @JsonProperty
     private String cardId;
-
+    
     public String getPin() {
         return pin;
     }

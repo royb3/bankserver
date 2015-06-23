@@ -48,15 +48,15 @@ public class BankEndpoint {
     }
 
     @GET
-    @Path("/auth/{rekeningnummer}/{kaartnummer}/{pincode}")
-    public int authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("kaartnummer") String kaartnummer, @PathParam("pincode") String pincode) throws Exception {
-        int attempts_left = Database.getDatabase().authenticate(Integer.parseInt(rekeningnummer), Integer.parseInt(pincode), kaartnummer);
-        if (attempts_left == -1) {
+    @Path("/auth/{rekeningnummer}/{pincode}")
+    public int authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("pincode") String pincode) throws Exception {
+        int attemps_left = Database.getDatabase().authenticate(rekeningnummer, pincode);
+        if (attemps_left == -1) {
             return -1;
-        } else if (attempts_left > 0) {
+        } else if (attemps_left > 0) {
             throw new NotAuthorizedException(Response.status(Response.Status.UNAUTHORIZED).build());
         } else {
-            throw new NotAuthorizedException(Response.status(403).entity(attempts_left).build());
+            throw new NotAuthorizedException(Response.status(403).entity(attemps_left).build());
         }
     }
 
@@ -69,14 +69,28 @@ public class BankEndpoint {
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
-    public LoginResponse login(LoginRequest req) {
-        JSONObject base = new JSONObject();
-        Success success = new Success();
-        Error error = new Error();
-        success.setToken(generateString(new Random(), "abcdefghijkk13984637", 25));
-        LoginResponse response = new LoginResponse(success, error);
-        System.out.println(response.getSuccess().getToken());
-        return response;
+    public LoginResponse login(LoginRequest req) throws Exception {
+        int attempts_left = Database.getDatabase().authenticate(req.getCardId(), req.getPin());
+        if (attempts_left == -1) {
+            Success success = new Success();
+            success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
+            LoginResponse response = new LoginResponse(success, null);
+            return response;
+        }
+        else if (attempts_left == 0) {
+            Error error = new Error();
+            error.setCode(16);
+            error.setMessage("De pas is geblokkeerd!");
+            LoginResponse response = new LoginResponse(new Success(), error);
+            return response;
+        }
+        else{
+            Error error = new Error();
+            error.setCode(2);
+            error.setMessage("De pincode is verkeerd!");
+            LoginResponse response = new LoginResponse(new Success(), error);
+            return response;
+        }
     }
 
     public static String generateString(Random rng, String characters, int length) {

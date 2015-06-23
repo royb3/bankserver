@@ -1,6 +1,7 @@
 package tk.projectheist.bankserver;
 
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  *
@@ -8,10 +9,9 @@ import org.codehaus.jackson.annotate.JsonProperty;
  */
 public class Success {
 
+    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     @JsonProperty
     private String token;
-    @JsonProperty
-    private int error;
 
     public String getToken() {
         return token;
@@ -21,13 +21,4 @@ public class Success {
         this.token = token;
     }
 
-    public int getError() {
-        return error;
-    }
-
-    public void setError(int error) {
-        this.error = error;
-    }
-    
-    
 }
