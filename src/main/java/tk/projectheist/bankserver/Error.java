@@ -1,10 +1,13 @@
 package tk.projectheist.bankserver;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+
 /**
  *
  * @author Boris
  */
 public class Error {
+
     int code;
     String message;
 
@@ -23,6 +26,5 @@ public class Error {
     public void setMessage(String message) {
         this.message = message;
     }
-    
-    
+
 }

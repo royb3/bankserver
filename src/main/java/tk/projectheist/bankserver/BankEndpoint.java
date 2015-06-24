@@ -7,6 +7,7 @@ package tk.projectheist.bankserver;
 
 import java.sql.SQLException;
 import java.util.Random;
+import java.util.regex.Pattern;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -70,7 +71,43 @@ public class BankEndpoint {
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
     public LoginResponse login(LoginRequest req) throws Exception {
-        int attempts_left = Database.getDatabase().authenticate(req.getCardId(), req.getPin());
+        if (req.getCardId() == null || req.getCardId().equals("")){
+            Error error = new Error();
+            error.setCode(10);
+            error.setMessage("Het pasnummer is niet ontvangen!");
+            LoginResponse response = new LoginResponse(new Success(), error);
+            return response;
+        }
+        if (req.getPin() == null || req.getPin().equals("")){
+            Error error = new Error();
+            error.setCode(11);
+            error.setMessage("De pincode is niet ontvangen!");
+            LoginResponse response = new LoginResponse(new Success(), error);
+            return response;
+        }
+        if (req.getCardId().substring(4).length() != 10){
+            Error error = new Error();
+            error.setCode(12);
+            error.setMessage("Het passnummer moet uit tien cijfers bestaan!");
+            LoginResponse response = new LoginResponse(new Success(), error);
+            return response;
+        }
+        if (req.getPin().length() != 4){
+            Error error = new Error();
+            error.setCode(13);
+            error.setMessage("De pincode moet uit vier cijfers bestaan!");
+            LoginResponse response = new LoginResponse(new Success(), error);
+            return response;
+        }
+        if (Pattern.matches(".*[a-zA-Z]+.*", req.getPin()) == true){
+            Error error = new Error();
+            error.setCode(13);
+            error.setMessage("De pincode mag geen letters bevatten!");
+            LoginResponse response = new LoginResponse(new Success(), error);
+            return response;
+        }
+        try{     
+        int attempts_left = Database.getDatabase().authenticate(req.getCardId(), req.getPin());    
         if (attempts_left == -1) {
             Success success = new Success();
             success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
@@ -83,11 +120,19 @@ public class BankEndpoint {
             error.setMessage("De pas is geblokkeerd!");
             LoginResponse response = new LoginResponse(new Success(), error);
             return response;
-        }
+        } 
         else{
-            Error error = new Error();
-            error.setCode(2);
+            ErrorLogin error = new ErrorLogin();
+            error.setCode(15);
             error.setMessage("De pincode is verkeerd!");
+            error.setFailedAttempts(3-attempts_left);
+            LoginResponse response = new LoginResponse(new Success(), error);
+            return response;
+        }
+        } catch (SQLException e){
+            Error error = new Error();
+            error.setCode(14);
+            error.setMessage("Het pasnummer bestaat niet!");
             LoginResponse response = new LoginResponse(new Success(), error);
             return response;
         }
