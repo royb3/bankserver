@@ -5,32 +5,43 @@
  */
 package tk.projectheist.bankserver;
 
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  *
  * @author roy
  */
-public class WithdrawResponse{
-    @JsonProperty
-    private String response;
-    @JsonProperty
-    private long transactionNumber;
-    
-    public String getResponse() {
-        return response;
+public class WithdrawResponse {
+
+    private Error error;
+    private SuccessWithdraw success;
+
+    public Error getError() {
+        return error;
     }
 
-    public void setResponse(String response) {
-        this.response = response;
+    public void setError(Error error) {
+        this.error = error;
     }
 
-    public long getTransactionNumber() {
-        return transactionNumber;
+    public SuccessWithdraw getSuccess() {
+        return success;
     }
 
-    public void setTransactionNumber(long transactionNumber) {
-        this.transactionNumber = transactionNumber;
+    public void setSuccess(SuccessWithdraw success) {
+        this.success = success;
     }
-    
+
+    public WithdrawResponse() {
+        super();
+    }
+
+    @JsonCreator
+    public WithdrawResponse(@JsonProperty SuccessWithdraw success, @JsonProperty Error error) {
+        super();
+        this.success = success;
+        this.error = error;
+    }
+
 }

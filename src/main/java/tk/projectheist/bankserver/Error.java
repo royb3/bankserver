@@ -1,15 +1,13 @@
 package tk.projectheist.bankserver;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-
 /**
  *
  * @author Boris
  */
 public class Error {
 
-    int code;
-    String message;
+    private int code;
+    private String message;
 
     public int getCode() {
         return code;

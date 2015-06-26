@@ -6,23 +6,17 @@
 package tk.projectheist.bankserver;
 
 import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  *
  * @author roy
  */
 public class WithdrawRequest {
-    @JsonProperty
-    private String TIBAN;
+
     @JsonProperty
     private long amount;
-    
-    public String getTIBAN() {
-        return TIBAN;
-    }
-
-    public void setIBAN(String TIBAN) {
-        this.TIBAN = TIBAN;
-    }
+    @JsonProperty
+    private String token;
 
     public long getAmount() {
         return amount;
@@ -31,4 +25,13 @@ public class WithdrawRequest {
     public void setAmount(long amount) {
         this.amount = amount;
     }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
 }
