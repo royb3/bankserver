@@ -16,7 +16,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.glassfish.grizzly.Context;
 
 /**
  *
@@ -61,6 +60,25 @@ public class BankEndpoint {
     @Path("/maximum_withdraw/{rekeningnummer}")
     public long maximumWithdraw(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException {
         return Database.getDatabase().maximumWithdraw(Integer.parseInt(rekeningnummer));
+    }
+
+    @POST
+    @Path("/logout")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public LogoutResponse logout(LogoutRequest req) throws Exception {
+        if (req.getToken() == null) {
+            Error error = new Error();
+            error.setCode(201);
+            error.setMessage("Geen Token meegegeven!");
+            LogoutResponse response = new LogoutResponse(new Success(), error);
+            return response;
+        } else {
+            Success success = new Success();
+            success.setToken(req.getToken());
+            LogoutResponse response = new LogoutResponse(success, null);
+            return response;
+        }
+
     }
 
     @POST
