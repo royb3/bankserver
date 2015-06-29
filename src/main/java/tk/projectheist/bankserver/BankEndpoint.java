@@ -34,26 +34,19 @@ public class BankEndpoint {
     public SaldoResponse getSaldo(MultivaluedMap<String, String> formParams) throws SQLException {
         Error error = new Error();
         SuccessSaldo success = new SuccessSaldo();
-
-        if (!formParams.containsKey("amount")) {
-            error.setCode(30);
-            error.setMessage("Geen amount ontvangen!");
+        String token = request.getHeader("token");
+        Session session = Database.getDatabase().getSession(token);
+        if (session == null) {
+            error.setCode(4);
+            error.setMessage("Session nooit uitgegeven.");
+        } else if (session.expired() || session.isDone()) {
+            error.setCode(4);
+            error.setMessage("Session is verlopen of er is uitgelogd.");
         } else {
-            String token = request.getHeader("token");
-            Session session = Database.getDatabase().getSession(token);
-            if (session == null) {
-                error.setCode(4);
-                error.setMessage("Token nooit uitgegeven.");
-            } else if (session.expired() || session.isDone()) {
-                error.setCode(4);
-                error.setMessage("Token is verlopen of er is uitgelogd.");
-            } else {
-                long saldo = Database.getDatabase().getBalance(Integer.parseInt(session.getCardId().substring(4)));
-                success.setSaldo(saldo);
-
-            }
-
+            long saldo = Database.getDatabase().getBalance(Integer.parseInt(session.getCardId().substring(4)));
+            success.setSaldo(saldo);
         }
+
         return new SaldoResponse(success, error);
     }
 
@@ -62,18 +55,14 @@ public class BankEndpoint {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public WithdrawResponse withdraw(MultivaluedMap<String, String> formParams) throws SQLException {
         Error error = new Error();
-
         SuccessCode success = new SuccessCode();
-
         if (!formParams.containsKey("amount")) {
             error.setCode(30);
             error.setMessage("Geen amount ontvangen!");
         } else {
-
             WithdrawRequest req = new WithdrawRequest();
             req.setAmount(Integer.parseInt(formParams.getFirst("amount")));
             req.setToken(request.getHeader("token"));
-
             if (req.getToken() == null || req.getToken().equals("")) {
                 error.setCode(4);
             } else {
