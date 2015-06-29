@@ -14,13 +14,8 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.glassfish.grizzly.http.server.Request;
-import org.glassfish.grizzly.http.server.Session;
-
-
 
 /**
  *
@@ -29,9 +24,6 @@ import org.glassfish.grizzly.http.server.Session;
 @Path("/")
 public class BankEndpoint {
 
-    @Context
-    private Request request;
-    
     @GET
     @Path("/balance/{rekeningnummer}")
     public long getSaldo(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException {
@@ -68,6 +60,25 @@ public class BankEndpoint {
     @Path("/maximum_withdraw/{rekeningnummer}")
     public long maximumWithdraw(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException {
         return Database.getDatabase().maximumWithdraw(Integer.parseInt(rekeningnummer));
+    }
+
+    @POST
+    @Path("/logout")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public LogoutResponse logout(LogoutRequest req) throws Exception {
+        if (req.getToken() == null) {
+            Error error = new Error();
+            error.setCode(201);
+            error.setMessage("Geen Token meegegeven!");
+            LogoutResponse response = new LogoutResponse(new Success(), error);
+            return response;
+        } else {
+            Success success = new Success();
+            success.setToken(req.getToken());
+            LogoutResponse response = new LogoutResponse(success, null);
+            return response;
+        }
+
     }
 
     @POST
@@ -113,11 +124,8 @@ public class BankEndpoint {
             int attempts_left = Database.getDatabase().authenticate(req.getCardId(), req.getPin());
             if (attempts_left == -1) {
                 Success success = new Success();
-                String token = generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25);
-                success.setToken(token);
+                success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
                 LoginResponse response = new LoginResponse(success, null);
-                Session session = request.getSession(true);
-                session.setAttribute("token", token);
                 return response;
             } else if (attempts_left == 0) {
                 Error error = new Error();
