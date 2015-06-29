@@ -24,8 +24,4 @@ public class LogoutRequest {
         this.token = token;
     }
 
-    public LogoutRequest(String token_) {
-        token = token_;
-    }
-
 }

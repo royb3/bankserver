@@ -14,15 +14,15 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class WithdrawRequest {
 
     @JsonProperty
-    private long amount;
+    private Integer amount;
     @JsonProperty
     private String token;
 
-    public long getAmount() {
+    public Integer getAmount() {
         return amount;
     }
 
-    public void setAmount(long amount) {
+    public void setAmount(Integer amount) {
         this.amount = amount;
     }
 

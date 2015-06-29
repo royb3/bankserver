@@ -38,14 +38,17 @@ public class BankEndpoint {
 
     @POST
     @Path("/withdraw")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public WithdrawResponse withdraw(WithdrawRequest request) throws SQLException {
-        if (request.getToken() == "") {
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public WithdrawResponse withdraw(MultivaluedMap<String,Integer> formParams) throws SQLException {
+        WithdrawRequest req = new WithdrawRequest();
+        req.setAmount(formParams.getFirst("amount"));
+        req.setToken(request.getHeader("token"));
+        if (req.getToken() != "") {
             SuccessWithdraw success = new SuccessWithdraw();
             success.setCode("1337");
             WithdrawResponse response = new WithdrawResponse(success, new Error());
             return response;
-        }else if (request.getAmount() == 0.0f){
+        }else if (req.getAmount() == null){
             Error error = new Error();
             error.setCode(30);
             error.setMessage("Geen amount ontvangen!");
@@ -76,17 +79,19 @@ public class BankEndpoint {
 
     @POST
     @Path("/logout")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public LogoutResponse logout(LogoutRequest req) throws Exception {
-        if (req.getToken() == null) {
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public LogoutResponse logout(MultivaluedMap<String, String> formParams) throws Exception {
+        LogoutRequest logoutRequest = new LogoutRequest();
+        logoutRequest.setToken(request.getHeader("token"));
+        if (logoutRequest.getToken() == null || logoutRequest.equals("")) {
             Error error = new Error();
             error.setCode(201);
-            error.setMessage("Geen Token meegegeven!");
-            LogoutResponse response = new LogoutResponse(new Success(), error);
+            error.setMessage("Geen token meegegeven!");
+            LogoutResponse response = new LogoutResponse(new SuccessWithdraw(), error);
             return response;
         } else {
-            Success success = new Success();
-            success.setToken(req.getToken());
+            SuccessWithdraw success = new SuccessWithdraw();
+            success.setCode("137");
             LogoutResponse response = new LogoutResponse(success, null);
             return response;
         }

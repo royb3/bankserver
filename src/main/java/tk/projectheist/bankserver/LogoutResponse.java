@@ -14,7 +14,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class LogoutResponse {
     
     private Error error;
-    private Success success;
+    private SuccessWithdraw success;
 
     public Error getError() {
         return error;
@@ -24,15 +24,15 @@ public class LogoutResponse {
         this.error = error;
     }
 
-    public Success getSuccess() {
+    public SuccessWithdraw getSuccess() {
         return success;
     }
 
-    public void setSuccess(Success success) {
+    public void setSuccess(SuccessWithdraw success) {
         this.success = success;
     }
 
-    public LogoutResponse(@JsonProperty Success succes,@JsonProperty Error error) {
+    public LogoutResponse(@JsonProperty SuccessWithdraw succes,@JsonProperty Error error) {
         super();
         this.success = success;
         this.error = error;
