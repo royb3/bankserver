@@ -156,7 +156,7 @@ public class BankEndpoint {
             return ExternalApiConnector.getInstance().login(bankIdentifier, req);
         } else {
             
-            Error error = new Error();
+            ErrorLogin error = new ErrorLogin();
 
         if (req.getCardId() == null || req.getCardId().equals("")) {
             error.setCode(10);
@@ -198,7 +198,7 @@ public class BankEndpoint {
                 Session s = new Session(request.getRemoteAddr(), success.getToken(), req.getCardId());
 
                 Database.getDatabase().StoreSession(s);
-                LoginResponse response = new LoginResponse(success, new Error());
+                LoginResponse response = new LoginResponse(success, new ErrorLogin());
                     return response;
                 } else if (attempts_left == 0) {
                     error.setCode(16);

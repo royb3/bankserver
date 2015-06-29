@@ -15,15 +15,15 @@ import org.codehaus.jackson.annotate.JsonCreator;
  */
 public class LoginResponse implements Serializable{
     @JsonProperty
-    private Error error;
+    private ErrorLogin error;
     @JsonProperty
     private Success success;
 
-    public Error getError() {
+    public ErrorLogin getError() {
         return error;
     }
 
-    public void setError(Error error) {
+    public void setError(ErrorLogin error) {
         this.error = error;
     }
 
@@ -40,7 +40,7 @@ public class LoginResponse implements Serializable{
     }
 
     @JsonCreator
-    public LoginResponse(@JsonProperty("success") Success success, @JsonProperty("error") Error error) {
+    public LoginResponse(@JsonProperty("success") Success success, @JsonProperty("error") ErrorLogin error) {
         super();
         this.success = success;
         this.error = error;
