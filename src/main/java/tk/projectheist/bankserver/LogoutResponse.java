@@ -32,7 +32,7 @@ public class LogoutResponse {
         this.success = success;
     }
 
-    public LogoutResponse(@JsonProperty SuccessWithdraw succes,@JsonProperty Error error) {
+    public LogoutResponse(@JsonProperty("success") SuccessWithdraw success,@JsonProperty("error") Error error) {
         super();
         this.success = success;
         this.error = error;

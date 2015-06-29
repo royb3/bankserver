@@ -1,5 +1,6 @@
 package tk.projectheist.bankserver;
 
+import java.io.Serializable;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -7,7 +8,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
  *
  * @author Boris
  */
-public class Error {
+public class Error implements Serializable {
 
     
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)

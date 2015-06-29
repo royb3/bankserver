@@ -5,6 +5,7 @@
  */
 package tk.projectheist.bankserver;
 
+import java.io.Serializable;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonCreator;
 
@@ -12,9 +13,10 @@ import org.codehaus.jackson.annotate.JsonCreator;
  *
  * @author roy
  */
-public class LoginResponse {
-
+public class LoginResponse implements Serializable{
+    @JsonProperty
     private Error error;
+    @JsonProperty
     private Success success;
 
     public Error getError() {
@@ -38,7 +40,7 @@ public class LoginResponse {
     }
 
     @JsonCreator
-    public LoginResponse(@JsonProperty Success success, @JsonProperty Error error) {
+    public LoginResponse(@JsonProperty("success") Success success, @JsonProperty("error") Error error) {
         super();
         this.success = success;
         this.error = error;

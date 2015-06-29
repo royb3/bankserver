@@ -6,7 +6,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
  *
  * @author Boris
  */
-public class ErrorLogin extends Error {
+public class ErrorLogin extends Error  {
 
     int failedAttempts;
 

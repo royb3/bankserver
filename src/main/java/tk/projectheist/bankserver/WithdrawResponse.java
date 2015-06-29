@@ -38,7 +38,7 @@ public class WithdrawResponse {
     }
 
     @JsonCreator
-    public WithdrawResponse(@JsonProperty SuccessWithdraw success, @JsonProperty Error error) {
+    public WithdrawResponse(@JsonProperty("success") SuccessWithdraw success, @JsonProperty("Succes") Error error) {
         super();
         this.success = success;
         this.error = error;

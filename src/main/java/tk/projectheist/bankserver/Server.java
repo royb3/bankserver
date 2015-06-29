@@ -1,4 +1,4 @@
-package tk.projectheist.bankserver;
+    package tk.projectheist.bankserver;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import java.io.IOException;
 import java.net.URI;
@@ -44,9 +44,11 @@ public class Server {
         }
     }
     
+    
+    
     public HttpServer initWebServer(){
         ResourceConfig config = new ResourceConfig(BankEndpoint.class);
         config.register(JacksonJaxbJsonProvider.class);
-        return GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:80"), config);
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:8000"), config);
     }
 }
