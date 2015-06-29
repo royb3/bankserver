@@ -25,7 +25,6 @@ import org.glassfish.grizzly.http.server.Request;
 @Path("/")
 public class BankEndpoint {
 
-
     @Context
     Request request;
 
@@ -39,10 +38,13 @@ public class BankEndpoint {
         Session session = Database.getDatabase().getSession(token);
         if (session == null) {
             error.setCode(4);
-            error.setMessage("Session nooit uitgegeven.");
-        } else if (session.expired() || session.isDone()) {
+            error.setMessage("Session nooit uitgegeven!");
+        } else if (session.expired()) {
             error.setCode(4);
-            error.setMessage("Session is verlopen of er is uitgelogd.");
+            error.setMessage("Session is verlopen!");
+        } else if (session.isDone()) {
+            error.setCode(4);
+            error.setMessage("Session is al uitgelogt!");
         } else {
             long saldo = Database.getDatabase().getBalance(Integer.parseInt(session.getCardId().substring(4)));
             success.setSaldo(saldo);
@@ -50,63 +52,60 @@ public class BankEndpoint {
 
         return new SaldoResponse(success, error);
     }
-    
+
     @POST
     @Path("/withdraw")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public WithdrawResponse withdraw(MultivaluedMap<String, String> formParams) throws SQLException {
         String bank = request.getHeader("bank");
-        
-            
-            Error error = new Error();
-            SuccessCode success = new SuccessCode();
-            
-            if (!formParams.containsKey("amount")) {
-                error.setCode(30);
-                error.setMessage("Geen amount ontvangen!");
+        Error error = new Error();
+        SuccessCode success = new SuccessCode();
+        if (!formParams.containsKey("amount")) {
+            error.setCode(30);
+            error.setMessage("Geen amount ontvangen!");
+        } else {
+            WithdrawRequest req = new WithdrawRequest();
+            req.setAmount(Integer.parseInt(formParams.getFirst("amount")));
+            req.setToken(request.getHeader("token"));
+            if (bank != null && !bank.equals("")) {
+                return ExternalApiConnector.getInstance().withdraw(bank, req);
+            }
+            if (req.getToken() == null || req.getToken().equals("")) {
+                error.setCode(4);
             } else {
-                
-                WithdrawRequest req = new WithdrawRequest();
-                req.setAmount(Integer.parseInt(formParams.getFirst("amount")));
-                req.setToken(request.getHeader("token"));
-                if (bank != null && !bank.equals("")) {
-                    return ExternalApiConnector.getInstance().withdraw(bank, req);
-                }
-                
-                if (req.getToken() == null || req.getToken().equals("")) {
+                Session session = Database.getDatabase().getSession(req.getToken());
+                if (session == null) {
                     error.setCode(4);
+                    error.setMessage("Token nooit uitgegeven.");
+                } else if (session.expired()) {
+                    error.setCode(4);
+                    error.setMessage("Token is verlopen!");
+                } else if (session.isDone()) {
+                    error.setCode(4);
+                    error.setMessage("Token is al uitgelogt!");
+                } else if (req.getAmount() < maximumWithdraw(session.getCardId().substring(4))) {
+                    Database.getDatabase().performWithdraw(Integer.parseInt(session.getCardId().substring(4)), req.getAmount());
+                    success.setCode(1337);
                 } else {
-                    Session session = Database.getDatabase().getSession(req.getToken());
-                    if (session == null) {
-                        error.setCode(4);
-                        error.setMessage("Token nooit uitgegeven.");
-                    } else if (session.expired() || session.isDone()) {
-                        error.setCode(4);
-                        error.setMessage("Token is verlopen of er is uitgelogd.");
-                    } else if (req.getAmount() < maximumWithdraw(session.getCardId().substring(4))) {
-                        Database.getDatabase().performWithdraw(Integer.parseInt(session.getCardId().substring(4)), req.getAmount());
-                        success.setCode(1337);
-                    } else {
-                        error.setCode(32);
-                        error.setMessage("Er is te weinig saldo voor deze transactie!");
-                    }
+                    error.setCode(32);
+                    error.setMessage("Er is te weinig saldo voor deze transactie!");
                 }
             }
-            return new WithdrawResponse(success, error);
         }
-    
-    
+        return new WithdrawResponse(success, error);
+    }
+
     public long maximumWithdraw(String rekeningnummer) throws SQLException {
         return Database.getDatabase().maximumWithdraw(Integer.parseInt(rekeningnummer));
     }
-    
+
     @POST
     @Path("/logout")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public LogoutResponse logout(MultivaluedMap<String, String> formParams) throws Exception {
         String token = request.getHeader("token");
         String bank = request.getHeader("bank");
-        
+
         Error error = new Error();
         if (token == null || token.equals("")) {
             error.setCode(3);
@@ -114,36 +113,35 @@ public class BankEndpoint {
             LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
             return response;
         } else {
-            if(bank != null & !bank.equals("")) {
+            if (bank != null & !bank.equals("")) {
                 return ExternalApiConnector.getInstance().logout(bank, token);
             }
-        Session session = Database.getDatabase().getSession(token);
-
-        SuccessCode success = new SuccessCode();
-        if (session == null) {
-            error.setCode(4);
-            error.setMessage("Er is geen sessie meegegeven!");
-            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
-            return response;
-        } else if (session.expired()) {
-            error.setCode(4);
-            error.setMessage("De sessie is expired!");
-            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
-            return response;
-        } else if (session.isDone()) {
-            error.setCode(4);
-            error.setMessage("De sessie is al uitgelogt!");
-            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
-            return response;
-        } else {
-            success.setCode(1337);
-            LogoutResponse response = new LogoutResponse(success, new Error());
-            Database.getDatabase().finishSession(token);
-            return response;
-        }
+            Session session = Database.getDatabase().getSession(token);
+            SuccessCode success = new SuccessCode();
+            if (session == null) {
+                error.setCode(4);
+                error.setMessage("Er is geen sessie meegegeven!");
+                LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+                return response;
+            } else if (session.expired()) {
+                error.setCode(4);
+                error.setMessage("De sessie is expired!");
+                LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+                return response;
+            } else if (session.isDone()) {
+                error.setCode(4);
+                error.setMessage("De sessie is al uitgelogt!");
+                LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+                return response;
+            } else {
+                success.setCode(1337);
+                LogoutResponse response = new LogoutResponse(success, new Error());
+                Database.getDatabase().finishSession(token);
+                return response;
+            }
         }
     }
-    
+
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -155,50 +153,50 @@ public class BankEndpoint {
         if (bankIdentifier != null && !bankIdentifier.equals("")) {
             return ExternalApiConnector.getInstance().login(bankIdentifier, req);
         } else {
-            
+
             ErrorLogin error = new ErrorLogin();
 
-        if (req.getCardId() == null || req.getCardId().equals("")) {
-            error.setCode(10);
-            error.setMessage("Het pasnummer is niet ontvangen!");
-            LoginResponse response = new LoginResponse(new Success(), error);
-            return response;
-        }
-        if (req.getPin() == null || req.getPin().equals("")) {
-            
-            error.setCode(11);
-            error.setMessage("De pincode is niet ontvangen!");
-            LoginResponse response = new LoginResponse(new Success(), error);
-            return response;
-        }
-        if (req.getCardId().length() != 14) {
-            error.setCode(12);
-            error.setMessage("Het passnummer moet uit veertien characters bestaan!");
-            LoginResponse response = new LoginResponse(new Success(), error);
-            return response;
-        }
-        if (req.getPin().length() != 4) {
-            error.setCode(13);
-            error.setMessage("De pincode moet uit vier cijfers bestaan!");
-            LoginResponse response = new LoginResponse(new Success(), error);
-            return response;
-        }
-        if (Pattern.matches(".*[a-zA-Z]+.*", req.getPin()) == true) {
-            error.setCode(13);
-            error.setMessage("De pincode mag geen letters bevatten!");
-            LoginResponse response = new LoginResponse(new Success(), error);
-            return response;
-        }
-        try {
-            int attempts_left = Database.getDatabase().authenticate(req.getCardId(), req.getPin());
-            if (attempts_left == -1) {
-                Success success = new Success();
-                success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
+            if (req.getCardId() == null || req.getCardId().equals("")) {
+                error.setCode(10);
+                error.setMessage("Het pasnummer is niet ontvangen!");
+                LoginResponse response = new LoginResponse(new Success(), error);
+                return response;
+            }
+            if (req.getPin() == null || req.getPin().equals("")) {
 
-                Session s = new Session(request.getRemoteAddr(), success.getToken(), req.getCardId());
+                error.setCode(11);
+                error.setMessage("De pincode is niet ontvangen!");
+                LoginResponse response = new LoginResponse(new Success(), error);
+                return response;
+            }
+            if (req.getCardId().length() != 14) {
+                error.setCode(12);
+                error.setMessage("Het passnummer moet uit veertien characters bestaan!");
+                LoginResponse response = new LoginResponse(new Success(), error);
+                return response;
+            }
+            if (req.getPin().length() != 4) {
+                error.setCode(13);
+                error.setMessage("De pincode moet uit vier cijfers bestaan!");
+                LoginResponse response = new LoginResponse(new Success(), error);
+                return response;
+            }
+            if (Pattern.matches(".*[a-zA-Z]+.*", req.getPin()) == true) {
+                error.setCode(13);
+                error.setMessage("De pincode mag geen letters bevatten!");
+                LoginResponse response = new LoginResponse(new Success(), error);
+                return response;
+            }
+            try {
+                int attempts_left = Database.getDatabase().authenticate(req.getCardId(), req.getPin());
+                if (attempts_left == -1) {
+                    Success success = new Success();
+                    success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
 
-                Database.getDatabase().StoreSession(s);
-                LoginResponse response = new LoginResponse(success, new ErrorLogin());
+                    Session s = new Session(request.getRemoteAddr(), success.getToken(), req.getCardId());
+
+                    Database.getDatabase().StoreSession(s);
+                    LoginResponse response = new LoginResponse(success, new ErrorLogin());
                     return response;
                 } else if (attempts_left == 0) {
                     error.setCode(16);
@@ -221,7 +219,7 @@ public class BankEndpoint {
             }
         }
     }
-    
+
     public static String generateString(Random rng, String characters, int length) {
         char[] text = new char[length];
         for (int i = 0; i < length; i++) {
@@ -229,5 +227,5 @@ public class BankEndpoint {
         }
         return new String(text);
     }
-    
+
 }
