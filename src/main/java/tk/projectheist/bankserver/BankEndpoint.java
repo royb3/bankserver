@@ -39,28 +39,33 @@ public class BankEndpoint {
     @POST
     @Path("/withdraw")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public WithdrawResponse withdraw(MultivaluedMap<String,Integer> formParams) throws SQLException {
-        WithdrawRequest req = new WithdrawRequest();
-        req.setAmount(formParams.getFirst("amount"));
-        req.setToken(request.getHeader("token"));
+    public WithdrawResponse withdraw(MultivaluedMap<String,String> formParams) throws SQLException {
         Error error = new Error();
         SuccessWithdraw success = new SuccessWithdraw();
-        if(req.getToken() == null || req.getToken().equals("")) {
-            error.setCode(4);
-        } else if (req.getAmount() == null){
+        
+        if(!formParams.containsKey("amount")){
             error.setCode(30);
             error.setMessage("Geen amount ontvangen!");
         } else {
-            Session session = Database.getDatabase().getSession(req.getToken());
-            if(session.expired() || session.isDone()) {
+        
+            WithdrawRequest req = new WithdrawRequest();
+            req.setAmount(Integer.parseInt(formParams.getFirst("amount")));
+            req.setToken(request.getHeader("token"));
+
+            if(req.getToken() == null || req.getToken().equals("")) {
                 error.setCode(4);
-                error.setMessage("Token is verlopen of er is uitgelogd.");
-            } else if(req.getAmount() < maximumWithdraw(session.getCardId().substring(4))) {
-                Database.getDatabase().performWithdraw(Integer.parseInt(session.getCardId().substring(4)), req.getAmount());
-                success.setCode(1337);
-            }else{
-                error.setCode(32);
-                error.setMessage("Er is te weinig saldo voor deze transactie!");
+            } else {
+                Session session = Database.getDatabase().getSession(req.getToken());
+                if(session.expired() || session.isDone()) {
+                    error.setCode(4);
+                    error.setMessage("Token is verlopen of er is uitgelogd.");
+                } else if(req.getAmount() < maximumWithdraw(session.getCardId().substring(4))) {
+                    Database.getDatabase().performWithdraw(Integer.parseInt(session.getCardId().substring(4)), req.getAmount());
+                    success.setCode(1337);
+                }else{
+                    error.setCode(32);
+                    error.setMessage("Er is te weinig saldo voor deze transactie!");
+                }
             }
         }
         return new WithdrawResponse(success, error);

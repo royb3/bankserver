@@ -156,12 +156,14 @@ public class Database {
         PreparedStatement ps = connection.prepareStatement("SELECT * FROM `sessions` WHERE `token` = ?");
         ps.setString(1, token);
         ResultSet set = ps.executeQuery();
-        
-        boolean done = set.getBoolean("done");
-        String endPoint = set.getString("endpoint");
-        LocalDateTime expDate = set.getTimestamp("expirationDate").toLocalDateTime();
-        String cardId = set.getString("cardId");
-        return new Session(done, endPoint, cardId, expDate);
+        if(set.next()){
+            boolean done = set.getBoolean("done");
+            String endPoint = set.getString("endpoint");
+            LocalDateTime expDate = set.getTimestamp("expirationDate").toLocalDateTime();
+            String cardId = set.getString("cardId");
+            return new Session(done, endPoint, cardId, expDate);
+        }
+        return null;
     }
     
     public boolean StoreSession(Session session) throws SQLException{
