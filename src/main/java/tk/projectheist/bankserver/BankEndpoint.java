@@ -37,7 +37,13 @@ public class BankEndpoint {
         if (request.getToken() == "") {
             SuccessWithdraw success = new SuccessWithdraw();
             success.setCode("1337");
-            WithdrawResponse response = new WithdrawResponse(success, null);
+            WithdrawResponse response = new WithdrawResponse(success, new Error());
+            return response;
+        }else if (request.getAmount() == 0.0f){
+            Error error = new Error();
+            error.setCode(30);
+            error.setMessage("Geen amount ontvangen!");
+            WithdrawResponse response = new WithdrawResponse(new SuccessWithdraw(),error);
             return response;
         }
         return null;
@@ -102,7 +108,7 @@ public class BankEndpoint {
         if (req.getCardId().length() != 14) {
             Error error = new Error();
             error.setCode(12);
-            error.setMessage("Het passnummer moet uit veertien CHARACTZERS bestaan!");
+            error.setMessage("Het passnummer moet uit veertien characters bestaan!");
             LoginResponse response = new LoginResponse(new Success(), error);
             return response;
         }
@@ -125,7 +131,7 @@ public class BankEndpoint {
             if (attempts_left == -1) {
                 Success success = new Success();
                 success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
-                LoginResponse response = new LoginResponse(success, null);
+                LoginResponse response = new LoginResponse(success, new Error());
                 return response;
             } else if (attempts_left == 0) {
                 Error error = new Error();

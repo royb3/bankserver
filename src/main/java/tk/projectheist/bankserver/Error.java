@@ -1,19 +1,27 @@
 package tk.projectheist.bankserver;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+
 /**
  *
  * @author Boris
  */
 public class Error {
 
-    private int code;
+    
+    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    @JsonProperty
+    private Integer code;
+    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    @JsonProperty
     private String message;
 
-    public int getCode() {
+    public Integer getCode() {
         return code;
     }
 
-    public void setCode(int code) {
+    public void setCode(Integer code) {
         this.code = code;
     }
 
