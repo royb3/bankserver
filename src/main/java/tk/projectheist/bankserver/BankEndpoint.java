@@ -56,7 +56,10 @@ public class BankEndpoint {
                 error.setCode(4);
             } else {
                 Session session = Database.getDatabase().getSession(req.getToken());
-                if(session.expired() || session.isDone()) {
+                if(session == null) {
+                    error.setCode(4);
+                    error.setMessage("Token nooit uitgegeven.");
+                } else if(session.expired() || session.isDone()) {
                     error.setCode(4);
                     error.setMessage("Token is verlopen of er is uitgelogd.");
                 } else if(req.getAmount() < maximumWithdraw(session.getCardId().substring(4))) {
