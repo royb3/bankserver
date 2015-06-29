@@ -39,7 +39,7 @@ public class BankEndpoint {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public WithdrawResponse withdraw(MultivaluedMap<String, String> formParams) throws SQLException {
         Error error = new Error();
-        SuccessWithdraw success = new SuccessWithdraw();
+        SuccessCode success = new SuccessCode();
 
         if (!formParams.containsKey("amount")) {
             error.setCode(30);
@@ -82,16 +82,24 @@ public class BankEndpoint {
     public LogoutResponse logout(MultivaluedMap<String, String> formParams) throws Exception {
         LogoutRequest logoutRequest = new LogoutRequest();
         logoutRequest.setToken(request.getHeader("token"));
-        if (logoutRequest.getToken() == null || logoutRequest.equals("")) {
+        Session session = Database.getDatabase().getSession(logoutRequest.getToken());
+        if(session == null || session.expired() || session.isDone()){
             Error error = new Error();
-            error.setCode(201);
+            error.setCode(4);
+            error.setMessage("De sessie is expired, bestaat niet of is al uitgelogt!");
+            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+            return response;
+        }
+        if (logoutRequest.getToken() == null || logoutRequest.getToken().equals("")) {
+            Error error = new Error();
+            error.setCode(3);
             error.setMessage("Geen token meegegeven!");
-            LogoutResponse response = new LogoutResponse(new SuccessWithdraw(), error);
+            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
             return response;
         } else {
-            SuccessWithdraw success = new SuccessWithdraw();
-            success.setCode(137);
-            LogoutResponse response = new LogoutResponse(success, null);
+            SuccessCode success = new SuccessCode();
+            success.setCode(1337);
+            LogoutResponse response = new LogoutResponse(success, new Error());
             Database.getDatabase().finishSession(logoutRequest.getToken());
             return response;
         }

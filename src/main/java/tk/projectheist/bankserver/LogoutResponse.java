@@ -5,6 +5,7 @@
  */
 package tk.projectheist.bankserver;
 
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
@@ -14,7 +15,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class LogoutResponse {
     
     private Error error;
-    private SuccessWithdraw success;
+    private SuccessCode success;
 
     public Error getError() {
         return error;
@@ -24,15 +25,16 @@ public class LogoutResponse {
         this.error = error;
     }
 
-    public SuccessWithdraw getSuccess() {
+    public SuccessCode getSuccess() {
         return success;
     }
 
-    public void setSuccess(SuccessWithdraw success) {
+    public void setSuccess(SuccessCode success) {
         this.success = success;
     }
 
-    public LogoutResponse(@JsonProperty SuccessWithdraw succes,@JsonProperty Error error) {
+    @JsonCreator
+    public LogoutResponse(@JsonProperty SuccessCode success,@JsonProperty Error error) {
         super();
         this.success = success;
         this.error = error;
