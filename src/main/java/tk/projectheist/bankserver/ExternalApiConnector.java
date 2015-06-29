@@ -35,11 +35,11 @@ public class ExternalApiConnector {
     private LinkedHashMap<String, String> hostnames = new LinkedHashMap<String, String>();
     
     public ExternalApiConnector(){
-        hostnames.put("ILMG", "http://145.24.222.103:8080/");
-        hostnames.put("ATMB", "http://145.24.222.217:8080/");
-        hostnames.put("SKER", "http://145.24.222.112:80/");
-        hostnames.put("MLBI", "http://145.24.222.177:8080/");
-        hostnames.put("COPO", "http://145.24.222.150:8080/");
+        hostnames.put("ILMG", "http://145.24.222.103:8080/%s");
+        hostnames.put("ATMB", "http://145.24.222.217:8080/%s");
+        hostnames.put("SKER", "http://145.24.222.112:80/%s");
+        hostnames.put("MLBI", "http://145.24.222.177:8080/%s");
+        hostnames.put("COPO", "http://145.24.222.150:80/%s.php");
     }
     
     public static ExternalApiConnector getInstance(){
@@ -52,7 +52,7 @@ public class ExternalApiConnector {
     public LoginResponse login(String bankIdentifier, LoginRequest req){
         try {
             String query = String.format("cardId=%s&pin=%s", URLEncoder.encode(req.getCardId(), "UTF-8"), URLEncoder.encode(req.getPin(), "UTF-8"));
-            connection = new HttpURLConnection(new URL(hostnames.get(bankIdentifier) + "login"), Proxy.NO_PROXY);
+            connection = new HttpURLConnection(new URL(String.format(hostnames.get(bankIdentifier), "login")), Proxy.NO_PROXY);
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
             
@@ -60,7 +60,8 @@ public class ExternalApiConnector {
             connection.setDoInput(true);
             connection.setDoOutput(true);
             connection.getOutputStream().write(query.getBytes());
-            if(connection.getResponseCode() == 200){
+            int rc = connection.getResponseCode();
+            if(rc == 200){
                 InputStream is = connection.getInputStream();
                 String response = "";
                 byte[] buffer = new byte[1024];
@@ -95,7 +96,7 @@ public class ExternalApiConnector {
     public WithdrawResponse withdraw(String bankIdentifier, WithdrawRequest req){
         try {
             String query = String.format("amount=%d", req.getAmount());
-            connection = new HttpURLConnection(new URL(hostnames.get(bankIdentifier) + "withdraw"), Proxy.NO_PROXY);
+            connection = new HttpURLConnection(new URL(String.format(hostnames.get(bankIdentifier), "withdraw")), Proxy.NO_PROXY);
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
             connection.setRequestProperty("token", req.getToken());
@@ -134,7 +135,7 @@ public class ExternalApiConnector {
     
     public LogoutResponse logout(String bankIdentifier, String token){
         try {
-            connection = new HttpURLConnection(new URL(hostnames.get(bankIdentifier) + "logout"), Proxy.NO_PROXY);
+            connection = new HttpURLConnection(new URL(String.format(hostnames.get(bankIdentifier), "logout")), Proxy.NO_PROXY);
             connection.setRequestMethod("POST");
             connection.setRequestProperty("token", token);
             connection.setUseCaches(true);
