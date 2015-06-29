@@ -28,44 +28,68 @@ import org.glassfish.grizzly.http.server.Request;
 @Path("/")
 public class BankEndpoint {
 
-    @Context Request request;
-    
-    @GET
-    @Path("/balance/{rekeningnummer}")
-    public long getSaldo(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException {
-        return (long) Database.getDatabase().getBalance(Integer.parseInt(rekeningnummer));
-    }
+    @Context
+    Request request;
 
     @POST
-    @Path("/withdraw")
+    @Path("/balance/")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public WithdrawResponse withdraw(MultivaluedMap<String,String> formParams) throws SQLException {
+    public SaldoResponse getSaldo(MultivaluedMap<String, String> formParams) throws SQLException {
         Error error = new Error();
-        SuccessWithdraw success = new SuccessWithdraw();
-        
-        if(!formParams.containsKey("amount")){
+        SuccessSaldo success = new SuccessSaldo();
+
+        if (!formParams.containsKey("amount")) {
             error.setCode(30);
             error.setMessage("Geen amount ontvangen!");
         } else {
-        
+            String token = request.getHeader("token");
+            Session session = Database.getDatabase().getSession(token);
+            if (session == null) {
+                error.setCode(4);
+                error.setMessage("Token nooit uitgegeven.");
+            } else if (session.expired() || session.isDone()) {
+                error.setCode(4);
+                error.setMessage("Token is verlopen of er is uitgelogd.");
+            } else {
+                long saldo = Database.getDatabase().getBalance(Integer.parseInt(session.getCardId().substring(4)));
+                success.setSaldo(saldo);
+                
+            }
+
+        }
+        return new SaldoResponse(success, error);
+    }
+    
+    @POST
+    @Path("/withdraw")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public WithdrawResponse withdraw(MultivaluedMap<String, String> formParams) throws SQLException {
+        Error error = new Error();
+        SuccessWithdraw success = new SuccessWithdraw();
+
+        if (!formParams.containsKey("amount")) {
+            error.setCode(30);
+            error.setMessage("Geen amount ontvangen!");
+        } else {
+
             WithdrawRequest req = new WithdrawRequest();
             req.setAmount(Integer.parseInt(formParams.getFirst("amount")));
             req.setToken(request.getHeader("token"));
 
-            if(req.getToken() == null || req.getToken().equals("")) {
+            if (req.getToken() == null || req.getToken().equals("")) {
                 error.setCode(4);
             } else {
                 Session session = Database.getDatabase().getSession(req.getToken());
-                if(session == null) {
+                if (session == null) {
                     error.setCode(4);
                     error.setMessage("Token nooit uitgegeven.");
-                } else if(session.expired() || session.isDone()) {
+                } else if (session.expired() || session.isDone()) {
                     error.setCode(4);
                     error.setMessage("Token is verlopen of er is uitgelogd.");
-                } else if(req.getAmount() < maximumWithdraw(session.getCardId().substring(4))) {
+                } else if (req.getAmount() < maximumWithdraw(session.getCardId().substring(4))) {
                     Database.getDatabase().performWithdraw(Integer.parseInt(session.getCardId().substring(4)), req.getAmount());
                     success.setCode(1337);
-                }else{
+                } else {
                     error.setCode(32);
                     error.setMessage("Er is te weinig saldo voor deze transactie!");
                 }
@@ -146,9 +170,9 @@ public class BankEndpoint {
             if (attempts_left == -1) {
                 Success success = new Success();
                 success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
-                
+
                 Session s = new Session(request.getRemoteAddr(), success.getToken(), req.getCardId());
-                
+
                 Database.getDatabase().StoreSession(s);
                 LoginResponse response = new LoginResponse(success, new Error());
                 return response;
