@@ -9,16 +9,13 @@ import java.sql.SQLException;
 import java.util.Random;
 import java.util.regex.Pattern;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import org.glassfish.grizzly.http.server.Request;
 
 /**
@@ -53,19 +50,20 @@ public class BankEndpoint {
             } else {
                 long saldo = Database.getDatabase().getBalance(Integer.parseInt(session.getCardId().substring(4)));
                 success.setSaldo(saldo);
-                
+
             }
 
         }
         return new SaldoResponse(success, error);
     }
-    
+
     @POST
     @Path("/withdraw")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public WithdrawResponse withdraw(MultivaluedMap<String, String> formParams) throws SQLException {
         Error error = new Error();
-        SuccessWithdraw success = new SuccessWithdraw();
+
+        SuccessCode success = new SuccessCode();
 
         if (!formParams.containsKey("amount")) {
             error.setCode(30);
@@ -108,16 +106,36 @@ public class BankEndpoint {
     public LogoutResponse logout(MultivaluedMap<String, String> formParams) throws Exception {
         LogoutRequest logoutRequest = new LogoutRequest();
         logoutRequest.setToken(request.getHeader("token"));
-        if (logoutRequest.getToken() == null || logoutRequest.equals("")) {
-            Error error = new Error();
-            error.setCode(201);
+        Session session = Database.getDatabase().getSession(logoutRequest.getToken());
+        Error error = new Error();
+        SuccessCode success = new SuccessCode();
+        if (session == null) {
+            error.setCode(4);
+            error.setMessage("Er is geen sessie meegegeven!");
+            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+            return response;
+        }
+        if (session.expired()) {
+            error.setCode(4);
+            error.setMessage("De sessie is expired!");
+            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+            return response;
+        }
+        if (session.isDone()) {
+            error.setCode(4);
+            error.setMessage("De sessie is al uitgelogt!");
+            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+            return response;
+        }
+        if (logoutRequest.getToken() == null || logoutRequest.getToken().equals("")) {
+            error.setCode(3);
             error.setMessage("Geen token meegegeven!");
-            LogoutResponse response = new LogoutResponse(new SuccessWithdraw(), error);
+            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
             return response;
         } else {
-            SuccessWithdraw success = new SuccessWithdraw();
-            success.setCode(137);
-            LogoutResponse response = new LogoutResponse(success, null);
+            success.setCode(1337);
+            LogoutResponse response = new LogoutResponse(success, new Error());
+            Database.getDatabase().finishSession(logoutRequest.getToken());
             return response;
         }
 

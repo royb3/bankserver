@@ -166,6 +166,16 @@ public class Database {
         return null;
     }
     
+    public void finishSession(String token) throws SQLException{
+        if(connection.isClosed()){
+            connect();
+        }
+        PreparedStatement ps = connection.prepareStatement("UPDATE `sessions` SET `done` = ? WHERE `token` = ?");
+        ps.setBoolean(1, true);
+        ps.setString(2,token);
+        ps.execute();
+    }
+    
     public boolean StoreSession(Session session) throws SQLException{
         if(connection.isClosed()) {
             connect();
