@@ -9,13 +9,17 @@ import java.sql.SQLException;
 import java.util.Random;
 import java.util.regex.Pattern;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import org.glassfish.grizzly.http.server.Request;
 
 /**
  *
@@ -24,6 +28,8 @@ import javax.ws.rs.core.Response;
 @Path("/")
 public class BankEndpoint {
 
+    @Context Request request;
+    
     @GET
     @Path("/balance/{rekeningnummer}")
     public long getSaldo(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException {
@@ -89,8 +95,11 @@ public class BankEndpoint {
 
     @POST
     @Path("/login")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public LoginResponse login(LoginRequest req) throws Exception {
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public LoginResponse login(MultivaluedMap<String, String> formParams) throws Exception {
+        LoginRequest req = new LoginRequest();
+        req.setCardId(formParams.getFirst("cardId"));
+        req.setPin(formParams.getFirst("pin"));
         if (req.getCardId() == null || req.getCardId().equals("")) {
             Error error = new Error();
             error.setCode(10);
