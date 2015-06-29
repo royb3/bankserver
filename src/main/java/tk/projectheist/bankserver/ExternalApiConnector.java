@@ -4,10 +4,20 @@
  * and open the template in the editor.
  */
 package tk.projectheist.bankserver;
-import java.net.HttpURLConnection;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.Proxy;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.SortedMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.glassfish.grizzly.http.server.Session;
+import org.json.JSONWriter;
+import sun.net.www.protocol.http.HttpURLConnection;
 /**
  *
  * @author roy
@@ -26,14 +36,32 @@ public class ExternalApiConnector {
         hostnames.put("COPO", "http://145.24.222.150:8080/");
     }
     
-    private void connect(){
-        
-    }
-    
     public static ExternalApiConnector getInstance(){
         if(api == null) {
             api = new ExternalApiConnector();
         }
         return api;
+    }
+    
+    public void login(String bankIdentity){
+        try {
+            connection = new HttpURLConnection(new URL(hostnames.get(bankIdentity)), Proxy.NO_PROXY);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setUseCaches(true);
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
+            JSONWriter jsonWriter = new JSONWriter(writer);
+            jsonWriter
+                    .object();  
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(ExternalApiConnector.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ProtocolException ex){
+            
+        } catch (IOException ex) {
+            
+        }
+        
     }
 }

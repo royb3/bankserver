@@ -14,9 +14,13 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.glassfish.grizzly.Context;
+import org.glassfish.grizzly.http.server.Request;
+import org.glassfish.grizzly.http.server.Session;
+
+
 
 /**
  *
@@ -25,6 +29,9 @@ import org.glassfish.grizzly.Context;
 @Path("/")
 public class BankEndpoint {
 
+    @Context
+    private Request request;
+    
     @GET
     @Path("/balance/{rekeningnummer}")
     public long getSaldo(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException {
@@ -106,8 +113,11 @@ public class BankEndpoint {
             int attempts_left = Database.getDatabase().authenticate(req.getCardId(), req.getPin());
             if (attempts_left == -1) {
                 Success success = new Success();
-                success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
+                String token = generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25);
+                success.setToken(token);
                 LoginResponse response = new LoginResponse(success, null);
+                Session session = request.getSession(true);
+                session.setAttribute("token", token);
                 return response;
             } else if (attempts_left == 0) {
                 Error error = new Error();
