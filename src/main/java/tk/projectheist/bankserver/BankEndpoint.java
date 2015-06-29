@@ -136,7 +136,7 @@ public class BankEndpoint {
             } else {
                 ErrorLogin error = new ErrorLogin();
                 error.setCode(15);
-                error.setMessage("De pincode is verkeerd!");
+                error.setMessage(String.format("De pincode is verkeerd! U heeft %d pogingen over.", attempts_left));
                 error.setFailedAttempts(3 - attempts_left);
                 LoginResponse response = new LoginResponse(new Success(), error);
                 return response;

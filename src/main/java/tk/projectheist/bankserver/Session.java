@@ -18,7 +18,7 @@ public class Session {
     private LocalDate expirationDate;
     private String endPoint;
     private String token;
-    
+    private String cardId;
     
     public Session(String endPoint, String token){
         expirationDate = LocalDate.now().plus(30, ChronoUnit.MINUTES);
