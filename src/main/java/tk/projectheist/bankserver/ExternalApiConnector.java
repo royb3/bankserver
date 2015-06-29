@@ -122,14 +122,14 @@ public class ExternalApiConnector {
             Error err = new Error();
             err.setCode(0);
             err.setMessage("Bank geeft antwoord dat niet aan de standaarden voldoet.");
-            return new WithdrawResponse(new SuccessWithdraw(), err);
+            return new WithdrawResponse(new SuccessCode(), err);
         } catch (Exception ex) {
             ex.printStackTrace(System.out);
         }
         Error err = new Error();
         err.setCode(6);
         err.setMessage("Fout tijdens inloggen bij externe bank.");
-        return new WithdrawResponse(new SuccessWithdraw(), err);
+        return new WithdrawResponse(new SuccessCode(), err);
     }
     
     public LogoutResponse logout(String bankIdentifier, String token){
@@ -158,13 +158,13 @@ public class ExternalApiConnector {
             Error err = new Error();
             err.setCode(0);
             err.setMessage("Bank geeft antwoord dat niet aan de standaarden voldoet.");
-            return new LogoutResponse(new SuccessWithdraw(), err);
+            return new LogoutResponse(new SuccessCode(), err);
         } catch (Exception ex) {
             ex.printStackTrace(System.out);
         }
         Error err = new Error();
         err.setCode(6);
         err.setMessage("Fout tijdens uitloggen bij externe bank.");
-        return new LogoutResponse(new SuccessWithdraw(), err);
+        return new LogoutResponse(new SuccessCode(), err);
     }
 }

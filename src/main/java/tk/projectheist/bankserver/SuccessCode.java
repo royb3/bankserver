@@ -7,7 +7,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
  *
  * @author Boris
  */
-public class SuccessWithdraw {
+public class SuccessCode {
 
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     @JsonProperty

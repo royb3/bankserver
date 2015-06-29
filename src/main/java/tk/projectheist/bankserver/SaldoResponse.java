@@ -10,12 +10,12 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  *
- * @author roy
+ * @author joey
  */
-public class WithdrawResponse {
+public class SaldoResponse {
 
     private Error error;
-    private SuccessCode success;
+    private SuccessSaldo success;
 
     public Error getError() {
         return error;
@@ -24,17 +24,20 @@ public class WithdrawResponse {
     public void setError(Error error) {
         this.error = error;
     }
+    public SaldoResponse() {
+        super();
+    }
 
-    public SuccessCode getSuccess() {
+    public SuccessSaldo getSuccess() {
         return success;
     }
 
-    public void setSuccess(SuccessCode success) {
+    public void setSuccess(SuccessSaldo success) {
         this.success = success;
     }
 
     @JsonCreator
-    public WithdrawResponse(@JsonProperty SuccessCode success, @JsonProperty Error error) {
+    public SaldoResponse(@JsonProperty SuccessSaldo success, @JsonProperty Error error) {
         super();
         this.success = success;
         this.error = error;
