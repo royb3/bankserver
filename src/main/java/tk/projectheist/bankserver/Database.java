@@ -6,11 +6,16 @@
 package tk.projectheist.bankserver;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,10 +27,10 @@ public class Database {
 
     private Connection connection = null;
     private final String host = "jdbc:mysql://127.0.0.1:3306/projectheist";
-   // private final String userName = "projectheist";
-    // private final String userPass = "jB_.+T;=W;D4%8L";
+    //private final String userName = "projectheist";
+    //private final String userPass = "jB_.+T;=W;D4%8L";
     private final String userName = "root";
-    private final String userPass = "lampenkap";
+    private final String userPass = "";
     private Statement stmt = null;
     private static Database database = null;
 
@@ -142,5 +147,34 @@ public class Database {
         }
         return 0;
     }
-
+    
+    public Session getSession(String token) throws SQLException{
+        if(connection.isClosed()) {
+            connect();
+        }
+        
+        PreparedStatement ps = connection.prepareStatement("SELECT * FROM `sessions` WHERE `token` = ?");
+        ps.setString(1, token);
+        ResultSet set = ps.executeQuery();
+        
+        boolean done = set.getBoolean("done");
+        String endPoint = set.getString("endpoint");
+        LocalDateTime expDate = set.getTimestamp("expirationDate").toLocalDateTime();
+        String cardId = set.getString("cardId");
+        return new Session(done, endPoint, cardId, expDate);
+    }
+    
+    public boolean StoreSession(Session session) throws SQLException{
+        if(connection.isClosed()) {
+            connect();
+        }
+        
+        PreparedStatement ps = connection.prepareStatement("INSERT INTO `sessions`(`done`, `endpoint`, `expirationDate`, `cardId`, `token`) VALUES (?, ?, ?, ?, ?)");
+        ps.setBoolean(1, session.isDone());
+        ps.setString(2, session.getEndPoint());
+        ps.setTimestamp(3, Timestamp.valueOf(session.getExpirationDate()));
+        ps.setString(4, session.getCardId());
+        ps.setString(5, session.getToken());
+        return ps.execute();
+    }
 }

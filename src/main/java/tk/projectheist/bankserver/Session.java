@@ -6,6 +6,7 @@
 package tk.projectheist.bankserver;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import javafx.util.Duration;
 
@@ -15,16 +16,26 @@ import javafx.util.Duration;
  */
 public class Session {
     private boolean done;
-    private LocalDate expirationDate;
+    private LocalDateTime expirationDate;
     private String endPoint;
     private String token;
     private String cardId;
     
-    public Session(String endPoint, String token){
-        expirationDate = LocalDate.now().plus(30, ChronoUnit.MINUTES);
+    public Session(String endPoint, String token, String cardId){
+        expirationDate = LocalDateTime.now().plus(30, ChronoUnit.MINUTES);
         this.endPoint = endPoint;
+        this.cardId = cardId;
         this.token = token;
+        this.done = false;
     }
+    
+    public Session(boolean done,String endPoint, String cardId, LocalDateTime expiration) {
+        this.expirationDate = expiration;
+        this.endPoint = endPoint;
+        this.cardId = cardId;
+        this.done = done;
+    }
+    
 
     public boolean isDone() {
         return done;
@@ -34,11 +45,11 @@ public class Session {
         this.done = done;
     }
 
-    public LocalDate getExpirationDate() {
+    public LocalDateTime getExpirationDate() {
         return expirationDate;
     }
 
-    public void setExpirationDate(LocalDate expirationDate) {
+    public void setExpirationDate(LocalDateTime expirationDate) {
         this.expirationDate = expirationDate;
     }
 
@@ -58,6 +69,15 @@ public class Session {
         this.token = token;
     }
     
+    public String getCardId(){
+        return cardId;
+    }
     
+    public void setCardId(String cardId){
+        this.cardId = cardId;
+    }
     
+    public boolean expired(){
+        return(LocalDateTime.now().isAfter(expirationDate));
+    }
 }

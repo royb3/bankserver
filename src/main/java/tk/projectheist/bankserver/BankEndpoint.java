@@ -43,37 +43,30 @@ public class BankEndpoint {
         WithdrawRequest req = new WithdrawRequest();
         req.setAmount(formParams.getFirst("amount"));
         req.setToken(request.getHeader("token"));
-        if (req.getToken() != "") {
-            SuccessWithdraw success = new SuccessWithdraw();
-            success.setCode("1337");
-            WithdrawResponse response = new WithdrawResponse(success, new Error());
-            return response;
-        }else if (req.getAmount() == null){
-            Error error = new Error();
+        Error error = new Error();
+        SuccessWithdraw success = new SuccessWithdraw();
+        if(req.getToken() == null || req.getToken().equals("")) {
+            error.setCode(4);
+        } else if (req.getAmount() == null){
             error.setCode(30);
             error.setMessage("Geen amount ontvangen!");
-            WithdrawResponse response = new WithdrawResponse(new SuccessWithdraw(),error);
-            return response;
-        }
-        return null;
-    }
-
-    @GET
-    @Path("/auth/{rekeningnummer}/{pincode}")
-    public int authenticate(@PathParam("rekeningnummer") String rekeningnummer, @PathParam("pincode") String pincode) throws Exception {
-        int attemps_left = Database.getDatabase().authenticate(rekeningnummer, pincode);
-        if (attemps_left == -1) {
-            return -1;
-        } else if (attemps_left > 0) {
-            throw new NotAuthorizedException(Response.status(Response.Status.UNAUTHORIZED).build());
         } else {
-            throw new NotAuthorizedException(Response.status(403).entity(attemps_left).build());
+            Session session = Database.getDatabase().getSession(req.getToken());
+            if(session.expired() || session.isDone()) {
+                error.setCode(4);
+                error.setMessage("Token is verlopen of er is uitgelogd.");
+            } else if(req.getAmount() < maximumWithdraw(session.getCardId().substring(4))) {
+                Database.getDatabase().performWithdraw(Integer.parseInt(session.getCardId().substring(4)), req.getAmount());
+                success.setCode(1337);
+            }else{
+                error.setCode(32);
+                error.setMessage("Er is te weinig saldo voor deze transactie!");
+            }
         }
+        return new WithdrawResponse(success, error);
     }
 
-    @GET
-    @Path("/maximum_withdraw/{rekeningnummer}")
-    public long maximumWithdraw(@PathParam("rekeningnummer") String rekeningnummer) throws SQLException {
+    public long maximumWithdraw(String rekeningnummer) throws SQLException {
         return Database.getDatabase().maximumWithdraw(Integer.parseInt(rekeningnummer));
     }
 
@@ -91,7 +84,7 @@ public class BankEndpoint {
             return response;
         } else {
             SuccessWithdraw success = new SuccessWithdraw();
-            success.setCode("137");
+            success.setCode(137);
             LogoutResponse response = new LogoutResponse(success, null);
             return response;
         }
@@ -145,6 +138,10 @@ public class BankEndpoint {
             if (attempts_left == -1) {
                 Success success = new Success();
                 success.setToken(generateString(new Random(), "abcdefghijklmnopqrstuvwxyz0123456789", 25));
+                
+                Session s = new Session(request.getRemoteAddr(), success.getToken(), req.getCardId());
+                
+                Database.getDatabase().StoreSession(s);
                 LoginResponse response = new LoginResponse(success, new Error());
                 return response;
             } else if (attempts_left == 0) {
