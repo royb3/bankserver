@@ -83,21 +83,32 @@ public class BankEndpoint {
         LogoutRequest logoutRequest = new LogoutRequest();
         logoutRequest.setToken(request.getHeader("token"));
         Session session = Database.getDatabase().getSession(logoutRequest.getToken());
-        if(session == null || session.expired() || session.isDone()){
-            Error error = new Error();
+        Error error = new Error();
+        SuccessCode success = new SuccessCode();
+        if (session == null) {
             error.setCode(4);
-            error.setMessage("De sessie is expired, bestaat niet of is al uitgelogt!");
+            error.setMessage("Er is geen sessie meegegeven!");
+            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+            return response;
+        }
+        if (session.expired()) {
+            error.setCode(4);
+            error.setMessage("De sessie is expired!");
+            LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
+            return response;
+        }
+        if (session.isDone()) {
+            error.setCode(4);
+            error.setMessage("De sessie is al uitgelogt!");
             LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
             return response;
         }
         if (logoutRequest.getToken() == null || logoutRequest.getToken().equals("")) {
-            Error error = new Error();
             error.setCode(3);
             error.setMessage("Geen token meegegeven!");
             LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
             return response;
         } else {
-            SuccessCode success = new SuccessCode();
             success.setCode(1337);
             LogoutResponse response = new LogoutResponse(success, new Error());
             Database.getDatabase().finishSession(logoutRequest.getToken());
