@@ -27,10 +27,10 @@ public class Database {
 
     private Connection connection = null;
     private final String host = "jdbc:mysql://127.0.0.1:3306/projectheist";
-    //private final String userName = "projectheist";
-    //private final String userPass = "jB_.+T;=W;D4%8L";
-    private final String userName = "root";
-    private final String userPass = "";
+    private final String userName = "projectheist";
+    private final String userPass = "jB_.+T;=W;D4%8L";
+    //private final String userName = "root";
+    //private final String userPass = "";
     private Statement stmt = null;
     private static Database database = null;
 
