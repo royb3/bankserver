@@ -34,7 +34,7 @@ public class WithdrawResponse {
     }
 
     @JsonCreator
-    public WithdrawResponse(@JsonProperty SuccessCode success, @JsonProperty Error error) {
+    public WithdrawResponse(@JsonProperty("success") SuccessCode success, @JsonProperty("error") Error error) {
         super();
         this.success = success;
         this.error = error;
