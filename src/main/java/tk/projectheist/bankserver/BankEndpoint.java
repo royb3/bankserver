@@ -200,6 +200,7 @@ public class BankEndpoint {
                     return response;
                 } else if (attempts_left == 0) {
                     error.setCode(16);
+                    error.setFailedAttempts(attempts_left);
                     error.setMessage("De pas is geblokkeerd!");
                     LoginResponse response = new LoginResponse(new Success(), error);
                     return response;
