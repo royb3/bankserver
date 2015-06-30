@@ -40,7 +40,7 @@ public class ExternalApiConnector {
     public ExternalApiConnector(){
         hostnames.put("ILMG", "http://145.24.222.103:8080/%s");
         hostnames.put("ATMB", "http://145.24.222.217:8080/%s");
-        hostnames.put("SKER", "http://145.24.222.112:80/%s");
+        hostnames.put("SKER", "http://145.24.222.112:80/api/%s");
         hostnames.put("MLBI", "http://145.24.222.177:8080/%s");
         hostnames.put("COPO", "http://145.24.222.150:80/%s.php");
 
