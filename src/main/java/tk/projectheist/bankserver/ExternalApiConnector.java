@@ -19,6 +19,7 @@ import java.util.SortedMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.exc.UnrecognizedPropertyException;
 import org.glassfish.grizzly.http.server.Session;
@@ -40,8 +41,8 @@ public class ExternalApiConnector {
     public ExternalApiConnector(){
         hostnames.put("ILMG", "http://145.24.222.103:8080/%s");
         hostnames.put("ATMB", "http://145.24.222.217:8080/%s");
-        hostnames.put("SKER", "http://145.24.222.112:80/%s");
-        hostnames.put("MLBI", "http://145.24.222.177:8080/%s");
+        hostnames.put("SKER", "http://145.24.222.112:80/api/%s.php");
+        hostnames.put("MLBI", "http://145.24.222.177:80/%s");
         hostnames.put("COPO", "http://145.24.222.150:80/%s.php");
 
     }
@@ -69,7 +70,7 @@ public class ExternalApiConnector {
 
                 String response = readInputStream(connection.getInputStream());
 
-                LoginResponse loginResponse = new ObjectMapper().readValue(response, LoginResponse.class);
+                LoginResponse loginResponse = new ObjectMapper().configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(response, LoginResponse.class);
                 return loginResponse;
             }
         } catch (UnrecognizedPropertyException ex) {
@@ -104,8 +105,8 @@ public class ExternalApiConnector {
             int rc = connection.getResponseCode();
             if (rc == 200) {
                 String response = readInputStream(connection.getInputStream());
-
-                WithdrawResponse withdrawResponse = new ObjectMapper().readValue(response, WithdrawResponse.class);
+                System.out.println(String.format("endpoint: %s\nwithdraw request\nresponse:%s", connection.getURL().toExternalForm(), response));
+                WithdrawResponse withdrawResponse = new ObjectMapper().configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(response, WithdrawResponse.class);
                 return withdrawResponse;
             }
         } catch (UnrecognizedPropertyException ex) {
@@ -133,7 +134,7 @@ public class ExternalApiConnector {
             if (rc == 200) {
                 String response = readInputStream(connection.getInputStream());
 
-                LogoutResponse withdrawResponse = new ObjectMapper().readValue(response, LogoutResponse.class);
+                LogoutResponse withdrawResponse = new ObjectMapper().configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(response, LogoutResponse.class);
                 return withdrawResponse;
             }
         } catch (UnrecognizedPropertyException ex) {

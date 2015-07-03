@@ -30,8 +30,7 @@ public class BankEndpoint {
 
     @POST
     @Path("/balance/")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public SaldoResponse getSaldo(MultivaluedMap<String, String> formParams) throws SQLException {
+    public SaldoResponse getSaldo() throws SQLException{
         Error error = new Error();
         SuccessSaldo success = new SuccessSaldo();
         String token = request.getHeader("token");
