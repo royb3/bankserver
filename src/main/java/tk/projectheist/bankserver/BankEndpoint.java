@@ -30,8 +30,7 @@ public class BankEndpoint {
 
     @POST
     @Path("/balance/")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public SaldoResponse getSaldo(MultivaluedMap<String, String> formParams) throws SQLException {
+    public SaldoResponse getSaldo() throws SQLException {
         Error error = new Error();
         SuccessSaldo success = new SuccessSaldo();
         String token = request.getHeader("token");
@@ -113,7 +112,7 @@ public class BankEndpoint {
             LogoutResponse response = new LogoutResponse(new SuccessCode(), error);
             return response;
         } else {
-            if (bank != null & !bank.equals("")) {
+            if (bank != null && !bank.equals("")) {
                 return ExternalApiConnector.getInstance().logout(bank, token);
             }
             Session session = Database.getDatabase().getSession(token);
